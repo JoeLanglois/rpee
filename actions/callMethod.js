@@ -14,7 +14,10 @@ function makeCallMethod({logErr, isDev, handlers} = {}){
     if(!handler) return methodNotFoundResponse(methodName)
   
     // Call the handler
-    return handler(...args).then(results => {
+    let resultPromise = handler(...args)
+    resultPromise = resultPromise.then ? resultPromise : Promise.resolve(resultPromise)
+
+    return resultPromise.then(results => {
       return {status: 200, results}
     }).catch(err => {
       logErr(err)
