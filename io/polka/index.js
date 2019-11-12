@@ -1,11 +1,12 @@
 const polka = require('polka')
 const cors = require('cors')
 const bodyParser = require('body-parser').json
+const static = require('serve-static')
+const path = require('path')
+
+const ISDEV = process.env.NODE_ENV !== 'production'
 
 const {callMethodCtrl} = require('../../controllers')
-const PORT = process.env.PORT || 3030
-
-
 
 function makeServer(){
   const app = polka()
@@ -14,6 +15,10 @@ function makeServer(){
   app.use(cors()).use(bodyParser())
 
   // Routing
+  if(ISDEV) {
+    app.use(static(path.join(__dirname, 'client')))
+  }
+
   app.post('/api/:methodName', (req, res) => {
     const request = {
       body: req.body,
@@ -30,13 +35,7 @@ function makeServer(){
     })
   })
 
-  app.listen(3030, null, null, (err) => {
-    if(err) {
-      console.log(err)
-    }
-
-    console.log("> Listening on port " + PORT)
-  })
+  return app
 }
 
 module.exports = makeServer
