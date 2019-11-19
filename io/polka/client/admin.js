@@ -1,51 +1,77 @@
-const {dom} = document
-const {api} = window
+import {apply, html} from 'https://cdn.pika.dev/apply-html/^2.0.1';
 
-const refs = {
-  methodList: document.querySelector('#methods-list'),
-  namePlaceHolder: document.querySelector('#methodName-placeholder')
-}
-
-const state = {
-  endpoints: [],
-  selectedEndpoint: null
-}
-
-function endpointsLink({name, internal, args = []}){
-  let el = dom`<p><a class="${internal ? 'black-70': 'dark-green'} dim no-underline f6" href="#">${name}</a></p>`
-  let link = el.querySelector('a')
-
-  link.onclick = e => {
-    e.preventDefault()
-    state.selectedEndpoint = {name, args}
-    window.location.hash = '#/' + name
-
-    rerenderDebugger()
+function MethodsList(onMethodSelected){
+  let methodsList = document.getElementById('methods-list')  
+  
+  const MethodListItem = ({name, internal}) => html`
+    <p class="flex items-center">
+      <a href="#/${name}" class="fw5 method dim f6 ${internal ? 'black-60' : 'green'}">${name}</a>
+    </p>
+  `
+  
+  function view(methods = []){
+    let internal = methods.filter(m => m.internal)
+    let userland = methods.filter(m => !m.internal)
+    
+    return html`
+      <div class="mb4">
+        <p class="f6 black-60">Internal</p>
+        ${internal.map(MethodListItem)}
+      </div>
+      
+      <div>
+        <p class="f6 black-60">User-provided</p>
+        ${userland.map(MethodListItem)}
+      </div>
+    `
   }
-
-
-  return el
-}
-
-function rerenderDebugger(){
-  const {name, args} = state.selectedEndpoint
-  let el = document.querySelector('#methodName-placeholder')
-  el.replaceWith(dom`<h2 id="methodName-placeholder">${name}( ${args.join(', ')} )</h2>`)
-}
-
-
-api.getEndpoints().then(endpoints => {
-  state.endpoints = endpoints
-
-  if(window.location.hash !== ''){
-    const hashMethodName = window.location.hash.split('#/')[1]
-    const selected = state.endpoints.find(({name}) => name === hashMethodName)
-
-    if(selected) {
-      state.selectedEndpoint = selected
-      rerenderDebugger()
+  
+  // Bind events
+  methodsList.addEventListener('click', (evt) => {
+    if(evt.target.matches('a.method')){
+      onMethodSelected(evt.target.textContent)
     }
+  }, false)
+  
+  function update(methods = []){
+    apply(methodsList, view(methods))
   }
+  
+  return {update, onMethodSelected}
 
-  refs.methodList.append(...endpoints.map(endpointsLink))
+}
+
+function mainSection(){
+  let el = document.getElementById('main')
+  
+  function render({methodName, internal, args = []}){
+    return html`
+      <h1 class="f4 fw6"><span class="bb bw1 b--dark-green">${methodName}</span></h1>
+    `
+  }
+  
+  function update({methodName, internal}){
+    apply(el, render(...arguments))
+  }
+  
+  return {update}
+}
+
+let methods = []
+let main = mainSection()
+
+let methodList = MethodsList((methodName) => {
+  let method = methods.find(m => m.name === methodName)
+  main.update({methodName: method.name, internal: method.internal})
 })
+
+
+setTimeout(_ => {
+  methods = [
+    {name: "getUser", internal: false}
+    , {name: "createUser", internal: false}
+    , {name: "endpoints", internal: true}
+  ]
+  
+  methodList.update(methods)
+}, 500) 

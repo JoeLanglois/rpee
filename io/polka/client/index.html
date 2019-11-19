@@ -10,13 +10,17 @@
   <script src="https://unpkg.com/dom-template-strings"></script>
 </head>
 <body class="avenir flex vh-100">
-  <div style="width: 200pt;" class="ph3 pv4 bg-black-10 h-100">
-    <h1 class="black-70 f6 ttu">Methods</h1>
-    <div id="methods-list"></div>
-  </div>
-  <div class="pa3">
-    <div id="methodName-placeholder" class="h2 w4 bg-black-10 mt3"></div>
-    <pre class="flex items-center h1 w5 bg-black-10"></pre>
+  <div class="flex avenir">
+    <div id="sidebar" style="width: 180pt;" class="pa3 bg-black-10 vh-100">
+      <p class="underline mb4">
+        Methods
+      </p>
+      <div id="methods-list"></div>
+    </div>
+    
+    <div id="main" class="ph4 pv3">
+      <div id="methodNamePlaceholder" class="mt2 h2 w5 bg-black-10"></div>
+    </div>
   </div>
 
   <script src="/api.js"></script>
