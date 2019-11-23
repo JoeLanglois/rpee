@@ -9,16 +9,29 @@
 
 function makeApi({fetch, endpoint} = {}){
   const endpoints = `${endpoint}/api/`
+  let ctxHandlers = []
 
-  return new Proxy({}, {
-    get(_, methodName){
+  function ctx(handler){
+    ctxHandlers.push(handler)
+  }
+
+  return new Proxy({ctx}, {
+    get(target, methodName){
+      if(methodName === 'ctx') return target.ctx
+      
       return function(){
         const args = Array.from(arguments)
+        const ctx = ctxHandlers.reduce((acc, h) => {
+          return Object.assign(acc, h())
+        }, {})
         const url = endpoints + methodName
 
         return fetch(url, {
           method: 'POST',
-          body: JSON.stringify({args}),
+          body: JSON.stringify({
+            ctx,
+            args
+          }),
           headers: {
             'Content-type': 'application/json'
           }

@@ -7,10 +7,21 @@
   <title>Rpee API Administration</title>
 
   <link rel="stylesheet" href="http://unpkg.com/tachyons">
-  <script src="https://unpkg.com/dom-template-strings"></script>
+  <script src="https://unpkg.com/codeflask/build/codeflask.min.js"></script>
 </head>
+
+<style>
+  #main .codeflask {
+    position: relative;
+    width: 100%;
+    height: 8rem;
+    padding: 1rem;
+    background-color: rgb(235, 235, 235);
+  }
+</style>
+
 <body class="avenir flex vh-100">
-  <div class="flex avenir">
+  <div class="flex avenir w-100">
     <div id="sidebar" style="width: 180pt;" class="pa3 bg-black-10 vh-100">
       <p class="underline mb4">
         Methods
@@ -18,12 +29,18 @@
       <div id="methods-list"></div>
     </div>
     
-    <div id="main" class="ph4 pv3">
-      <div id="methodNamePlaceholder" class="mt2 h2 w5 bg-black-10"></div>
+    <div id="main" class="ph4 pv3 w-100">
+      <div id="methodNamePlaceholder" class="mt2 h2 w5 bg-black-10 mb5"></div>
+
+      <p class="ttu fw6 f6 black-50">Console</p>
+      <div class="bg-black-10 w-100 mb3" id="code-editor"></div>
+
+      <p class="ttu fw6 f6 black-50">Results: </p>
+      <div class="bg-black-80 h4" ></div>
     </div>
   </div>
 
   <script src="/api.js"></script>
-  <script src="/admin.js"></script>
+  <script src="/admin.js" type="module" ></script>
 </body>
 </html>

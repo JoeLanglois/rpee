@@ -9,12 +9,12 @@ const methodNotFoundResponse = methodName => Promise.resolve({
 })
 
 function makeCallMethod({logErr, isDev, handlers} = {}){
-  const callMethod = (methodName, args = []) => {
+  const callMethod = (methodName, args = [], ctx = {}) => {
     const handler = handlers[methodName]
     if(!handler) return methodNotFoundResponse(methodName)
   
     // Call the handler
-    let resultPromise = handler(...args)
+    let resultPromise = handler(...args, ctx)
     resultPromise = resultPromise.then ? resultPromise : Promise.resolve(resultPromise)
 
     return resultPromise.then(results => {

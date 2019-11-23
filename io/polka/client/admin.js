@@ -1,4 +1,5 @@
-import {apply, html} from 'https://cdn.pika.dev/apply-html/^2.0.1';
+import {apply, html, raw} from 'https://cdn.pika.dev/apply-html/^2.0.1';
+const {api} = window
 
 function MethodsList(onMethodSelected){
   let methodsList = document.getElementById('methods-list')  
@@ -41,18 +42,59 @@ function MethodsList(onMethodSelected){
 
 }
 
-function mainSection(){
+function mainSection({onSendRequest} = {}){
   let el = document.getElementById('main')
-  
-  function render({methodName, internal, args = []}){
+  let flask = new CodeFlask('#code-editor', { language: 'js'})
+
+  let currentMethod = null
+  let currentArgs = []
+
+  function render({methodName = currentMethod, internal, args = currentArgs, results}){
     return html`
-      <h1 class="f4 fw6"><span class="bb bw1 b--dark-green">${methodName}</span></h1>
+      <h1 class="f4 fw6 mb5"><span class="bb bw1 b--dark-green">${methodName}(${args.join(', ')})</span></h1>
+      <p class="ttu fw6 f6 black-50">Console</p>
+      ${raw(flask.editorRoot.outerHTML)}
+      <button class="send-btn mb3 bw0 pa1 green underline bg-white pointer dim">Send!</button>
+
+      <p class="ttu fw6 f6 black-50">Results</p>
+      <div class="bg-black-80 w-100">
+        <pre class="near-white f6 h5 overflow-y-scroll pa3">${JSON.stringify(results, null, 2)}</pre>
+      </div>
     `
   }
   
-  function update({methodName, internal}){
+  function update({methodName = currentMethod, args = currentArgs, internal, results} = {}){
+    currentMethod = methodName
+    currentArgs = args
     apply(el, render(...arguments))
+    flask.updateCode(`// Enter js here to test the method\napi.${methodName}();`)
   }
+
+  // Event binding
+  el.addEventListener('click', evt => {
+    if(evt.target.matches('.send-btn')) {
+      // Get the code
+      let code = flask.getCode()
+
+      let promise
+      try {
+        promise = eval(code)
+      }  catch (err) {
+        alert("Invalid javascript")
+        console.log(err)
+      }
+
+      if(promise){
+        promise.then(resp => {
+          update({results: resp})
+        })
+      }
+      
+      
+      
+      
+    }
+  })
   
   return {update}
 }
@@ -62,16 +104,22 @@ let main = mainSection()
 
 let methodList = MethodsList((methodName) => {
   let method = methods.find(m => m.name === methodName)
-  main.update({methodName: method.name, internal: method.internal})
+  main.update({methodName: method.name, internal: method.internal, args: method.args})
 })
 
+let urlMethod = window.location.hash.split('#/')[1]
 
-setTimeout(_ => {
-  methods = [
-    {name: "getUser", internal: false}
-    , {name: "createUser", internal: false}
-    , {name: "endpoints", internal: true}
-  ]
-  
+api.getEndpoints().then(_methods => {
+  methods = _methods
   methodList.update(methods)
-}, 500) 
+
+  // Update the main screen also
+  let current = methods.find(m => m.name === urlMethod)
+  
+  if(!current) {
+    window.location.hash = ''
+  } else {
+    main.update({methodName: current.name, internal: current.internal, args: current.args})
+  }
+
+})
